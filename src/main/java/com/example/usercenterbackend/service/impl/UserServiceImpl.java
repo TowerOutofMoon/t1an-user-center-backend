@@ -37,7 +37,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public BaseResponse<User> userRegister(String userAccount, String userPassword, String checkPassword, String communityCode) {
-// 1.注册校验
+        // 1.注册校验
         // 1.1 非空
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, communityCode))
             throw new BusinessException(BaseErrorCode.PARAMS_NULL_ERROR);
@@ -81,7 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public BaseResponse<User> userLogin(String userAccount, String userPassword, HttpServletRequest request) {
-// 1.登录校验
+        // 1.登录校验
         // 1.1 输入数据非空
         if (StringUtils.isAnyBlank(userAccount, userPassword))
             throw new BusinessException(BaseErrorCode.PARAMS_NULL_ERROR);
@@ -98,8 +98,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         QueryWrapper<User> qw = new QueryWrapper<>();
         qw.eq("userAccount", userAccount);
         qw.eq("userPassword", encryptedPassword);
+        System.out.println(userAccount + " " + encryptedPassword);
         // 3.处理结果
         User selectedUser = userMapper.selectOne(qw);
+        System.out.println("selectedUser " + selectedUser);
         if (selectedUser == null) {
             log.info("User log failed, the username and password do not match!");
             throw new BusinessException(BaseErrorCode.QUERY_ERROR, "用户名和密码不匹配");
@@ -155,15 +157,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public BaseResponse<Boolean> deleteUser(long id, HttpServletRequest request) {
+        System.out.println("id" + id);
         // 1.基础校验
         if (id < 0)
-            return ResponseHelper.failedResponse(BaseErrorCode.DELETE_ERROR, "不存在这样的id");
+            throw new BusinessException(BaseErrorCode.DELETE_ERROR, "不存在这样的id");
         // 2.鉴权操作
         if (isCasualUser(request))
             throw new BusinessException(BaseErrorCode.NO_AUTH_ERROR, "不是管理员，无法进行删除操作");
         // 3.删除操作
         if (!this.removeById(id))
-            return ResponseHelper.failedResponse(BaseErrorCode.DELETE_ERROR, "未能成功删除");
+            throw new BusinessException(BaseErrorCode.DELETE_ERROR, "未能成功删除");
         // 4.封装成基础响应类
         return ResponseHelper.successResponse(true, "成功删除用户!");
     }
